@@ -1,7 +1,7 @@
 {
-  "name": "@figma/nodegit",
-  "description": "Node.js libgit2 asynchronous native bindings",
-  "version": "0.28.0-figma.8",
+  "name": "@alvl/nodegit",
+  "description": "Node.js libgit2 asynchronous native bindings for Node 22",
+  "version": "0.28.0-alvl.1",
   "homepage": "http://nodegit.org",
   "keywords": [
     "libgit2",
@@ -64,7 +64,8 @@
   "binary": {
     "module_name": "nodegit",
     "module_path": "./build/Release/",
-    "host": "https://figma-nodegit.s3.amazonaws.com/"
+    "host": "https://github.com/antoinelavail/nodegit/releases/download/",
+    "remote_path": "v{version}"
   },
   "scripts": {
     "cov": "npm run cppcov && npm run filtercov && npm run mergecov",
