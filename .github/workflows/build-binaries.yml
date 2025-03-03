@@ -54,47 +54,31 @@ jobs:
           npm install
           npm install -g @mapbox/node-pre-gyp
 
-      # Generate JavaScript files
+      # Generate JavaScript files BEFORE packaging
       - name: Generate JavaScript Interface
         run: |
-          # Run the generation process
           node generate/index.js
 
-      # Create complete package with JS files and binary
-      - name: Create Complete Package
+      # Now package the binary AND the generated JS files
+      - name: Package Binary and JS Files
         run: |
-          # Create a directory for the complete package
-          mkdir -p complete-package
+          # Create a modified package command that includes the JS files
+          mkdir -p custom-package/build/Release
+          cp -r build/Release/*.node custom-package/build/Release/
+          mkdir -p custom-package/lib
+          cp -r lib/* custom-package/lib/
           
-          # Copy binary from build directory
-          mkdir -p complete-package/build/Release
-          cp -r build/Release/* complete-package/build/Release/
-          
-          # Copy JS files
-          cp -r lib complete-package/
-          
-          # Copy package.json
-          cp package.json complete-package/
-          
-          # Create tarball
-          cd complete-package
-          tar -czvf ../nodegit-complete-${{ matrix.node }}-${{ runner.os }}-$(node -e "console.log(process.arch)").tar.gz .
-
-      - name: Package Binary
-        run: |
-          node lifecycleScripts/clean
-          node-pre-gyp package
+          # Package it up
+          cd custom-package
+          tar -czvf ../nodegit-v$(node -e "console.log(require('../package.json').version)")-node-v$(node -e "console.log(process.versions.modules)")-$(node -e "console.log(process.platform)")-$(node -e "console.log(process.arch)").tar.gz .
 
       - name: Upload Binary to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            build/stage/*/*.tar.gz
-            nodegit-complete-*.tar.gz
+          files: nodegit-v*-node-*.tar.gz
           name: ${{ github.ref_name }}
           draft: false
           generate_release_notes: true
-          # The tag is required for GitHub Releases
           tag_name: ${{ github.ref_name }}
         if: startsWith(github.ref, 'refs/tags/')
 
@@ -103,6 +87,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: nodegit-${{ runner.os }}-node${{ matrix.node }}
-          path: |
-            build/stage/*/*.tar.gz
-            nodegit-complete-*.tar.gz
+          path: nodegit-v*-node-*.tar.gz
