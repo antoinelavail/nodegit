@@ -19,7 +19,6 @@ jobs:
         node: [22]
     runs-on: ${{ matrix.os }}
     steps:
-      # Setup steps copied from your existing workflow
       - name: Setup Environment
         run: |
           mkdir ~/.ssh_tests
@@ -54,37 +53,30 @@ jobs:
           npm install
           npm install -g @mapbox/node-pre-gyp
 
-      # Generate JavaScript files BEFORE packaging
+      # Generate JavaScript files
       - name: Generate JavaScript Interface
         run: |
           node generate/index.js
 
-      # Now package the binary AND the generated JS files
-      - name: Package Binary and JS Files
+      # Build and package using node-pre-gyp (properly handles binary packaging)
+      - name: Build and Package Binary
         run: |
-          # Create a modified package command that includes the JS files
-          mkdir -p custom-package/build/Release
-          
-          # Find and copy the binary to the correct location
-          find build -name "nodegit.node" -exec cp {} custom-package/build/Release/ \;
-          
-          # Copy lib files directly to lib directory (not under build/Release)
-          mkdir -p custom-package/lib
-          cp -r lib/* custom-package/lib/
-          
-          # Copy package.json and other essential files
-          cp package.json custom-package/
-          cp README.md custom-package/ || true
-          cp LICENSE custom-package/ || true
-          
-          # Package it up
-          cd custom-package
-          tar -czvf ../nodegit-v$(node -e "console.log(require('./package.json').version)")-node-v$(node -e "console.log(process.versions.modules)")-$(node -e "console.log(process.platform)")-$(node -e "console.log(process.arch)").tar.gz .
+          node-pre-gyp configure build
+          node-pre-gyp package
 
-      - name: Upload Binary to GitHub Release
+      # Create a full source package with correct structure
+      - name: Prepare Full Package
+        run: |
+          PACKAGE_NAME=$(npm pack)
+          # This creates a full source package with proper structure
+          echo "Created full source package: $PACKAGE_NAME"
+
+      - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: nodegit-v*-node-*.tar.gz
+          files: |
+            build/stage/*/*.tar.gz
+            *.tgz
           name: ${{ github.ref_name }}
           draft: false
           generate_release_notes: true
@@ -96,4 +88,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: nodegit-${{ runner.os }}-node${{ matrix.node }}
-          path: nodegit-v*-node-*.tar.gz
+          path: |
+            build/stage/*/*.tar.gz
+            *.tgz
