@@ -15,8 +15,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-13-xlarge]
-        node: [18, 20, 22]
+        os: [ubuntu-latest, macos-13, macos-14]
+        node: [22]
     runs-on: ${{ matrix.os }}
     steps:
       # Setup steps copied from your existing workflow
@@ -60,7 +60,7 @@ jobs:
           node-pre-gyp package
 
       - name: Upload Binary to GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: build/stage/*/*.tar.gz
           name: ${{ github.ref_name }}
