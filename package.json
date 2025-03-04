@@ -1,7 +1,7 @@
 {
   "name": "@alvl/nodegit",
   "description": "Node.js libgit2 asynchronous native bindings for Node 22",
-  "version": "0.28.0-alvl.3",
+  "version": "0.28.0-alvl.4",
   "homepage": "http://nodegit.org",
   "keywords": [
     "libgit2",
